@@ -215,4 +215,31 @@ mod tests {
         assert_eq!(Token::LeftParen, *lex("(").unwrap().get(0).unwrap());
         assert_eq!(Token::RightParen, *lex(")").unwrap().get(0).unwrap());
     }
+
+    #[test]
+    fn complex_formula() {
+        let tokens = lex("-(a&(b|c))->(d<=>f)").unwrap();
+        assert_eq!(
+            [
+                Token::Negation,
+                Token::LeftParen,
+                Token::Variable("a".to_string()),
+                Token::And,
+                Token::LeftParen,
+                Token::Variable("b".to_string()),
+                Token::Or,
+                Token::Variable("c".to_string()),
+                Token::RightParen,
+                Token::RightParen,
+                Token::Implication,
+                Token::LeftParen,
+                Token::Variable("d".to_string()),
+                Token::Biimplication,
+                Token::Variable("f".to_string()),
+                Token::RightParen,
+            ]
+            .to_vec(),
+            tokens
+        );
+    }
 }
