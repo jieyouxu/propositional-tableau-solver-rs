@@ -33,6 +33,10 @@ pub(crate) struct Biimplication {
 }
 
 pub(crate) fn parse_formula(formula: &str) -> Option<PropositionalFormula> {
+    if formula.is_empty() || formula.trim().is_empty() {
+        return None;
+    }
+
 	unimplemented!()
 }
 
@@ -40,6 +44,7 @@ pub(crate) fn parse_formula(formula: &str) -> Option<PropositionalFormula> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::{assert_eq, assert_ne};
 
     #[test]
     fn empty_string() {
