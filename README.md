@@ -13,7 +13,7 @@ It can be described by the following BNF grammar:
 
 ```enbf
 <formula>   ::= <propositional-variable>
-            |   ( - <formula> )             # negation
+            |   - <formula>                 # negation
             |   ( <formula> & <formula>  )  # conjunction
             |   ( <formula> | <formula>  )  # disjunction
             |   ( <formula> -> <formula>  ) # implication
@@ -38,7 +38,7 @@ taking precedence:
 Using the `-c <input_string>`
 
 ```bash
-$ cargo run -c "(a^b)"
+$ cargo run -c "(a&b)"
 ```
 
 ### IO Redirection
