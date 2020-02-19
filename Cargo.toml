@@ -5,7 +5,8 @@ authors = ["许杰友 Jieyou Xu (Joe) <jieyouxu@outlook.com>"]
 edition = "2018"
 
 [dev-dependencies]
-pretty_assertions = "0.6.1"
+pretty_assertions = "^0.6.1"
 
 [dependencies]
+logos = "^0.9.7"
 

@@ -1,5 +1,6 @@
 mod tableau;
 mod propositional_formula;
+mod lexer;
 
 use tableau::build_tableau;
 

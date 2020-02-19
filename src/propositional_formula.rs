@@ -1,12 +1,20 @@
+use std::str::FromStr;
+
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub(crate) enum PropositionalFormula {
-    Variable(String),
-    Negation(Box<PropositionalFormula>),
+    Variable(Variable),
+    Negation(Negation),
     Conjunction(Conjunction),
     Disjunction(Disjunction),
     Implication(Implication),
     Biimplication(Biimplication),
 }
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub(crate) struct Variable(String);
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub(crate) struct Negation(Box<PropositionalFormula>);
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub(crate) struct Conjunction {
@@ -32,14 +40,19 @@ pub(crate) struct Biimplication {
     right: Box<PropositionalFormula>,
 }
 
-pub(crate) fn parse_formula(formula: &str) -> Option<PropositionalFormula> {
-    if formula.is_empty() || formula.trim().is_empty() {
-        return None;
+impl FromStr for PropositionalFormula {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() || s.trim().is_empty() {
+            return Err(());
+        }
+
+        let formula = s.trim();
+
+        unimplemented!();
     }
-
-	unimplemented!()
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -48,14 +61,14 @@ mod tests {
 
     #[test]
     fn empty_string() {
-        let result = parse_formula("");
-        assert!(result.is_none());
+        let result = PropositionalFormula::from_str("");
+        assert!(result.is_err());
     }
 
     #[test]
     fn blank_string() {
-        let result = parse_formula(" \t");
-        assert!(result.is_none());
+        let result = PropositionalFormula::from_str(" \t");
+        assert!(result.is_err());
     }
 }
 
