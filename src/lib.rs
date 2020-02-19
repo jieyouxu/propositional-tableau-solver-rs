@@ -45,7 +45,7 @@ struct Theory {
 impl Theory {
     fn new() -> Theory {
         Theory {
-            formulas: HashSet::new()
+            formulas: HashSet::new(),
         }
     }
 }
@@ -106,4 +106,3 @@ mod tests {
         assert_eq!(SolverError::EmptyFormula, result.err().unwrap());
     }
 }
-
