@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub(crate) enum PropositionalFormula {
     Variable(Variable),
@@ -38,37 +36,5 @@ pub(crate) struct Implication {
 pub(crate) struct Biimplication {
     left: Box<PropositionalFormula>,
     right: Box<PropositionalFormula>,
-}
-
-impl FromStr for PropositionalFormula {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() || s.trim().is_empty() {
-            return Err(());
-        }
-
-        let formula = s.trim();
-
-        unimplemented!();
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use pretty_assertions::{assert_eq, assert_ne};
-
-    #[test]
-    fn empty_string() {
-        let result = PropositionalFormula::from_str("");
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn blank_string() {
-        let result = PropositionalFormula::from_str(" \t");
-        assert!(result.is_err());
-    }
 }
 
