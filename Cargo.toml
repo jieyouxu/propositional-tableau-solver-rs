@@ -4,9 +4,15 @@ version = "0.1.0"
 authors = ["许杰友 Jieyou Xu (Joe) <jieyouxu@outlook.com>"]
 edition = "2018"
 
+[[bin]]
+name = "prop-sat-solver"
+path = "src/main.rs"
+
 [dev-dependencies]
-pretty_assertions = "^0.6.1"
+assert2 = "0.1.2"
 
 [dependencies]
-logos = "^0.9.7"
-
+nom = "5.1.1"
+nom_locate = "2.0.0"
+colored = "1.9.3"
+structopt = { version = "0.3.13", features = ["color", "suggestions", "wrap_help"] }
