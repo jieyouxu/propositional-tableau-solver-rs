@@ -8,6 +8,9 @@ edition = "2018"
 name = "prop-sat-solver"
 path = "src/main.rs"
 
+[lib]
+path = "src/lib.rs"
+
 [dev-dependencies]
 assert2 = "0.1.2"
 
