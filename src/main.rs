@@ -4,7 +4,9 @@ use colored::*;
 use log::info;
 use paw;
 
+pub mod formula;
 pub mod logger;
+pub mod parser;
 
 const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
 
