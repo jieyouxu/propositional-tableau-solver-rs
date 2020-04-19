@@ -37,6 +37,7 @@ pub fn binary_operator(input: &str) -> ParseResult<&str, BinaryOperator> {
 /// ```
 ///
 /// Given that a mapping function `M: Fn(C) -> R` is provided.
+#[inline]
 fn adapter<I, C, R, M, F>(original: F, mapping_fn: M) -> impl Fn(I) -> ParseResult<I, R>
 where
     F: Fn(I) -> ParseResult<I, C>,
@@ -46,6 +47,7 @@ where
 }
 
 /// Specialization of the `adapter_helper` where the value is independent from the input string.
+#[inline]
 fn adapter_ignore_input<'a, I, C, R, F>(
     original: F,
     value: R,
