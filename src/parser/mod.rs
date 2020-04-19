@@ -1,6 +1,7 @@
 //! Parser combinators for parsing propositional formulas from strings.
 
 pub mod operators;
+pub mod variable;
 
 /// Newtype for `nom::IResult` so we don't expose third-party API.
 ///
