@@ -9,6 +9,7 @@ name = "prop-sat-solver"
 path = "src/main.rs"
 
 [lib]
+name = "libprop_sat_solver"
 path = "src/lib.rs"
 
 [dev-dependencies]
