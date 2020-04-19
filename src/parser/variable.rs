@@ -21,13 +21,13 @@ use nom::sequence::tuple;
 pub fn variable(input: &str) -> ParseResult<&str, Variable> {
     let leading = verify(anychar, is_alphabetic_char);
     let rest = alphanumeric0;
-    let (remaining, (leading, rest)) = tuple((leading, rest))(input)?;
+    let (remaining_input, (leading, rest)) = tuple((leading, rest))(input)?;
 
     let mut name = String::new();
     name.push(leading);
     name.push_str(rest);
 
-    Ok((remaining, Variable::new(name)))
+    Ok((remaining_input, Variable::new(name)))
 }
 
 fn is_alphabetic_char(c: &char) -> bool {
