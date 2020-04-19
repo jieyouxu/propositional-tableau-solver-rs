@@ -14,7 +14,7 @@ It can be described by the following BNF grammar:
 ```enbf
 <formula>   ::= <propositional-variable>
             |   - <formula>                 # negation
-            |   ( <formula> & <formula>  )  # conjunction
+            |   ( <formula> ^ <formula>  )  # conjunction
             |   ( <formula> | <formula>  )  # disjunction
             |   ( <formula> -> <formula>  ) # implication
             |   ( <formula> <-> <formula> ) # bi-implication
@@ -38,14 +38,14 @@ taking precedence:
 Using the `-c <input_string>`
 
 ```bash
-$ cargo run -c "(a&b)"
+$ cargo run -c "(a^b)"
 ```
 
 ### IO Redirection
 
 Alternatively, redirect the standard input `stdin` to the solver to supply the
-propositional formula. Only the first line of the `stdin` is parsed.
+propositional formula.
 
 ```bash
-$ cat input.txt > cargo gun
+$ cat input.txt > cargo run
 ```
