@@ -4,7 +4,6 @@ use colored::*;
 use log::info;
 use paw;
 
-pub mod formula;
 pub mod logger;
 pub mod parser;
 
