@@ -6,8 +6,7 @@ use super::operators::{
 use super::variable::variable;
 use super::ParseResult;
 
-use libprop_sat_solver::formula::PropositionalFormula;
-
+use libprop_sat_solver::formula::{BinaryOperator, PropositionalFormula};
 use nom::branch::alt;
 use nom::bytes::complete::take_while;
 use nom::character::complete::char;
@@ -68,67 +67,66 @@ pub fn negated_formula(input: &str) -> ParseResult<&str, PropositionalFormula> {
     ))
 }
 
+/// Generic binary formula parser.
+///
+/// # Parameters
+///
+/// - `main_connective_parser`: a parser which is responsible for recognizing the main connective of
+///   the binary propositional formula. Examples of this includes `^` in `(a ^ a)` where as the
+///   negation operator is a _unary_ operator and is _not_ a main connective.
+/// - `value_constructor_fn`: a mapping function from the two sub formulas `( <left> <op> <right> )`
+///   which maps `(Box<PropositionalFormula>, Box<PropositionalFormula>) -> PropositionalFormula`,
+///   corresponding to the bottom-up construction of `(<left>, <right>) => <propositional-formula>`.
+///
+/// # Implementation Notes
+///
+/// I wanted to make this a higher-order function which generates a new closure that, given the
+/// input string `input`, will:
+///
+/// 1. Parse the form `( <left> <op> <right> )` and discard any whitespaces, the parentheses, the
+///    main connective.
+/// 2. Generate the desired `PropositionalFormula` value from the `<left>` and `<right>`
+///    sub-formulas.
+pub fn parse_binary_formula(
+    main_connective_parser: fn(&str) -> ParseResult<&str, BinaryOperator>,
+    value_constructor_fn: fn(
+        Box<PropositionalFormula>,
+        Box<PropositionalFormula>,
+    ) -> PropositionalFormula,
+) -> impl Fn(&str) -> ParseResult<&str, PropositionalFormula> {
+    move |input| {
+        let (remaining_input, (left_sub_formula, right_sub_formula)) =
+            paired_parentheses(separated_pair(
+                preceded(space, propositional_formula),
+                preceded(space, main_connective_parser),
+                preceded(space, propositional_formula),
+            ))(input)?;
+
+        Ok((
+            remaining_input,
+            value_constructor_fn(Box::new(left_sub_formula), Box::new(right_sub_formula)),
+        ))
+    }
+}
+
 /// Parser for a propositional formula with logical AND as the main connective.
 pub fn conjunction_formula(input: &str) -> ParseResult<&str, PropositionalFormula> {
-    let (remaining_input, (left_sub_formula, right_sub_formula)) =
-        paired_parentheses(separated_pair(
-            preceded(space, propositional_formula),
-            preceded(space, and_operator),
-            preceded(space, propositional_formula),
-        ))(input)?;
-
-    Ok((
-        remaining_input,
-        PropositionalFormula::conjunction(Box::new(left_sub_formula), Box::new(right_sub_formula)),
-    ))
+    parse_binary_formula(and_operator, PropositionalFormula::conjunction)(input)
 }
 
 /// Parser for a formula with logical OR as the main connective.
 pub fn disjunction_formula(input: &str) -> ParseResult<&str, PropositionalFormula> {
-    let (remaining_input, (left_sub_formula, right_sub_formula)) =
-        paired_parentheses(separated_pair(
-            preceded(space, propositional_formula),
-            preceded(space, or_operator),
-            preceded(space, propositional_formula),
-        ))(input)?;
-
-    Ok((
-        remaining_input,
-        PropositionalFormula::disjunction(Box::new(left_sub_formula), Box::new(right_sub_formula)),
-    ))
+    parse_binary_formula(or_operator, PropositionalFormula::disjunction)(input)
 }
 
 /// Parser for a propositional formula with implication as the main connective.
 pub fn implication_formula(input: &str) -> ParseResult<&str, PropositionalFormula> {
-    let (remaining_input, (left_sub_formula, right_sub_formula)) =
-        paired_parentheses(separated_pair(
-            preceded(space, propositional_formula),
-            preceded(space, implication_operator),
-            preceded(space, propositional_formula),
-        ))(input)?;
-
-    Ok((
-        remaining_input,
-        PropositionalFormula::implication(Box::new(left_sub_formula), Box::new(right_sub_formula)),
-    ))
+    parse_binary_formula(implication_operator, PropositionalFormula::implication)(input)
 }
 
 /// Parser for a propositional formula with biimplication as the main connective.
 pub fn biimplication_formula(input: &str) -> ParseResult<&str, PropositionalFormula> {
-    let (remaining_input, (left_sub_formula, right_sub_formula)) =
-        paired_parentheses(separated_pair(
-            preceded(space, propositional_formula),
-            preceded(space, biimplication_operator),
-            preceded(space, propositional_formula),
-        ))(input)?;
-
-    Ok((
-        remaining_input,
-        PropositionalFormula::biimplication(
-            Box::new(left_sub_formula),
-            Box::new(right_sub_formula),
-        ),
-    ))
+    parse_binary_formula(biimplication_operator, PropositionalFormula::biimplication)(input)
 }
 
 /// Parser for a propositional formula.
