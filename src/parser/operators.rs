@@ -1,7 +1,8 @@
 //! Parser combinators for unary and binary operators.
 
 use super::ParseResult;
-use crate::formula::{BinaryOperator, UnaryOperator};
+
+use libprop_sat_solver::formula::{BinaryOperator, UnaryOperator};
 
 use nom::branch::alt;
 use nom::bytes::complete::tag;

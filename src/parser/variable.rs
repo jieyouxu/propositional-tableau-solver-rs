@@ -1,7 +1,8 @@
 //! Propositional variable parser.
 
 use super::ParseResult;
-use crate::formula::Variable;
+
+use libprop_sat_solver::formula::Variable;
 
 use nom::character::complete::{alphanumeric0, anychar};
 use nom::character::is_alphabetic;
