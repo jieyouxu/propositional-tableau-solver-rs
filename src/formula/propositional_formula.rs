@@ -1,7 +1,8 @@
 //! A propositional formula.
 
+use std::convert::{From, Into};
+
 use super::Variable;
-use super::{BinaryOperator, UnaryOperator};
 
 /// A propositional formula is defined inductively, conforming to the following BNF:
 ///
@@ -74,7 +75,8 @@ impl PropositionalFormula {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
+    /// use libprop_sat_solver::formula::{PropositionalFormula, Variable};
     /// let formula = PropositionalFormula::variable(Variable::new("a"));
     /// println!("{:#?}", formula);
     /// ```
@@ -87,9 +89,10 @@ impl PropositionalFormula {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
+    /// use libprop_sat_solver::formula::{PropositionalFormula, Variable};
     /// let sub_formula = PropositionalFormula::variable(Variable::new("a"));
-    /// let formula = PropositionalFormula::negated(sub_formula);
+    /// let formula = PropositionalFormula::negated(Box::new(sub_formula.clone()));
     /// println!("{:#?}", formula);
     /// ```
     #[inline]
@@ -102,9 +105,10 @@ impl PropositionalFormula {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
+    /// use libprop_sat_solver::formula::{PropositionalFormula, Variable};
     /// let sub_formula = PropositionalFormula::variable(Variable::new("a"));
-    /// let formula = PropositionalFormula::conjunction(sub_formula, sub_formula);
+    /// let formula = PropositionalFormula::conjunction(Box::new(sub_formula.clone()), Box::new(sub_formula.clone()));
     /// println!("{:#?}", formula);
     /// ```
     #[inline]
@@ -120,9 +124,10 @@ impl PropositionalFormula {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
+    /// use libprop_sat_solver::formula::{PropositionalFormula, Variable};
     /// let sub_formula = PropositionalFormula::variable(Variable::new("a"));
-    /// let formula = PropositionalFormula::disjunction(sub_formula, sub_formula);
+    /// let formula = PropositionalFormula::disjunction(Box::new(sub_formula.clone()), Box::new(sub_formula.clone()));
     /// println!("{:#?}", formula);
     /// ```
     #[inline]
@@ -138,9 +143,10 @@ impl PropositionalFormula {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
+    /// use libprop_sat_solver::formula::{PropositionalFormula, Variable};
     /// let sub_formula = PropositionalFormula::variable(Variable::new("a"));
-    /// let formula = PropositionalFormula::implication(sub_formula, sub_formula);
+    /// let formula = PropositionalFormula::implication(Box::new(sub_formula.clone()), Box::new(sub_formula.clone()));
     /// println!("{:#?}", formula);
     /// ```
     #[inline]
@@ -156,9 +162,10 @@ impl PropositionalFormula {
     ///
     /// # Example
     ///
-    /// ```rust
+    /// ```
+    /// use libprop_sat_solver::formula::{PropositionalFormula, Variable};
     /// let sub_formula = PropositionalFormula::variable(Variable::new("a"));
-    /// let formula = PropositionalFormula::biimplication(sub_formula, sub_formula);
+    /// let formula = PropositionalFormula::biimplication(Box::new(sub_formula.clone()), Box::new(sub_formula.clone()));
     /// println!("{:#?}", formula);
     /// ```
     #[inline]
@@ -167,5 +174,14 @@ impl PropositionalFormula {
         right_sub_formula: Box<PropositionalFormula>,
     ) -> Self {
         Self::Biimplication(Some(left_sub_formula), Some(right_sub_formula))
+    }
+}
+
+impl<V> From<V> for PropositionalFormula
+where
+    V: Into<Variable>,
+{
+    fn from(v: V) -> Self {
+        Self::Variable(v.into())
     }
 }
