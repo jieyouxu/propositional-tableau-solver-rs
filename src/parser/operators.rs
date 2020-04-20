@@ -4,25 +4,33 @@ use super::ParseResult;
 
 use libprop_sat_solver::formula::{BinaryOperator, UnaryOperator};
 
-use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::char;
 use nom::combinator::value;
 
-/// Parses a unary operator.
-pub fn unary_operator(input: &str) -> ParseResult<&str, UnaryOperator> {
-    let negation = value(UnaryOperator::Negation, char('-'));
-    negation(input)
+/// Parses the negation operator.
+pub fn negation_operator(input: &str) -> ParseResult<&str, UnaryOperator> {
+    value(UnaryOperator::Negation, char('-'))(input)
 }
 
-/// Parses a binary operator.
-pub fn binary_operator(input: &str) -> ParseResult<&str, BinaryOperator> {
-    let and = value(BinaryOperator::And, char('^'));
-    let or = value(BinaryOperator::Or, char('|'));
-    let implication = value(BinaryOperator::Implication, tag("->"));
-    let biimplication = value(BinaryOperator::Biimplication, tag("<->"));
+/// Parses the logical AND operator.
+pub fn and_operator(input: &str) -> ParseResult<&str, BinaryOperator> {
+    value(BinaryOperator::And, char('^'))(input)
+}
 
-    alt((and, or, implication, biimplication))(input)
+/// Parses the logical OR operator.
+pub fn or_operator(input: &str) -> ParseResult<&str, BinaryOperator> {
+    value(BinaryOperator::Or, char('|'))(input)
+}
+
+/// Parses the implication operator.
+pub fn implication_operator(input: &str) -> ParseResult<&str, BinaryOperator> {
+    value(BinaryOperator::Implication, tag("->"))(input)
+}
+
+/// Parses the biimplication operator.
+pub fn biimplication_operator(input: &str) -> ParseResult<&str, BinaryOperator> {
+    value(BinaryOperator::Biimplication, tag("<->"))(input)
 }
 
 #[cfg(test)]
@@ -31,15 +39,27 @@ mod tests {
     use assert2::check;
 
     #[test]
-    fn test_unary_operator() {
-        check!(("", UnaryOperator::Negation) == unary_operator("-").unwrap());
+    fn test_negation() {
+        check!(("", UnaryOperator::Negation) == negation_operator("-").unwrap());
     }
 
     #[test]
-    fn test_binary_operators() {
-        check!(("", BinaryOperator::And) == binary_operator("^").unwrap());
-        check!(("", BinaryOperator::Or) == binary_operator("|").unwrap());
-        check!(("", BinaryOperator::Implication) == binary_operator("->").unwrap());
-        check!(("", BinaryOperator::Biimplication) == binary_operator("<->").unwrap());
+    fn test_and_operator() {
+        check!(("", BinaryOperator::And) == and_operator("^").unwrap());
+    }
+
+    #[test]
+    fn test_or_operator() {
+        check!(("", BinaryOperator::Or) == or_operator("|").unwrap());
+    }
+
+    #[test]
+    fn test_implication_operator() {
+        check!(("", BinaryOperator::Implication) == implication_operator("->").unwrap());
+    }
+
+    #[test]
+    fn test_biimplication_operator() {
+        check!(("", BinaryOperator::Biimplication) == biimplication_operator("<->").unwrap());
     }
 }
