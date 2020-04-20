@@ -23,6 +23,7 @@ use nom::sequence::{preceded, separated_pair, terminated};
 /// let (_, variable) = propositional_variable(input)?;
 /// assert_eq!(Variable::new("foo"), variable);
 /// ```
+#[inline]
 pub fn propositional_variable(input: &str) -> ParseResult<&str, PropositionalFormula> {
     let (remaining_input, variable) = variable(input)?;
     let formula = PropositionalFormula::variable(variable);
@@ -33,11 +34,10 @@ pub fn propositional_variable(input: &str) -> ParseResult<&str, PropositionalFor
 /// propositional formulas.
 ///
 /// The characters
-///
-/// - Tab: `\t`
-/// - Space: ` `
+/// - Tab: `\t` - Space: ` `
 ///
 /// count as space.
+#[inline]
 pub fn space(input: &str) -> ParseResult<&str, &str> {
     let space_chars = " \t";
     take_while(move |c| space_chars.contains(c))(input)
@@ -46,6 +46,7 @@ pub fn space(input: &str) -> ParseResult<&str, &str> {
 /// Generic wrapper to generate a parser to match some `( <inner-content> )` with surrounding
 /// parentheses, allowing space delimiters before, between and after the components, where the
 /// `inner_parser` is responsible for matching the `<inner-content>` part.
+#[inline]
 pub fn paired_parentheses<'a, R, P>(inner_parser: P) -> impl Fn(&'a str) -> ParseResult<&'a str, R>
 where
     P: Fn(&'a str) -> ParseResult<&'a str, R>,
@@ -57,6 +58,7 @@ where
 }
 
 /// Parser for a propositional negated formula: `( - <propositional-formula> )`
+#[inline]
 pub fn negated_formula(input: &str) -> ParseResult<&str, PropositionalFormula> {
     let (remaining_input, sub_formula) =
         paired_parentheses(preceded(negation_operator, propositional_formula))(input)?;
@@ -87,6 +89,7 @@ pub fn negated_formula(input: &str) -> ParseResult<&str, PropositionalFormula> {
 ///    main connective.
 /// 2. Generate the desired `PropositionalFormula` value from the `<left>` and `<right>`
 ///    sub-formulas.
+#[inline]
 pub fn parse_binary_formula(
     main_connective_parser: fn(&str) -> ParseResult<&str, BinaryOperator>,
     value_constructor_fn: fn(
@@ -110,21 +113,25 @@ pub fn parse_binary_formula(
 }
 
 /// Parser for a propositional formula with logical AND as the main connective.
+#[inline]
 pub fn conjunction_formula(input: &str) -> ParseResult<&str, PropositionalFormula> {
     parse_binary_formula(and_operator, PropositionalFormula::conjunction)(input)
 }
 
 /// Parser for a formula with logical OR as the main connective.
+#[inline]
 pub fn disjunction_formula(input: &str) -> ParseResult<&str, PropositionalFormula> {
     parse_binary_formula(or_operator, PropositionalFormula::disjunction)(input)
 }
 
 /// Parser for a propositional formula with implication as the main connective.
+#[inline]
 pub fn implication_formula(input: &str) -> ParseResult<&str, PropositionalFormula> {
     parse_binary_formula(implication_operator, PropositionalFormula::implication)(input)
 }
 
 /// Parser for a propositional formula with biimplication as the main connective.
+#[inline]
 pub fn biimplication_formula(input: &str) -> ParseResult<&str, PropositionalFormula> {
     parse_binary_formula(biimplication_operator, PropositionalFormula::biimplication)(input)
 }
@@ -132,6 +139,7 @@ pub fn biimplication_formula(input: &str) -> ParseResult<&str, PropositionalForm
 /// Parser for a propositional formula.
 ///
 /// This is the root parser for a single propositional formula.
+#[inline]
 pub fn propositional_formula(input: &str) -> ParseResult<&str, PropositionalFormula> {
     alt((
         propositional_variable,
