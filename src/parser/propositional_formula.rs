@@ -219,4 +219,17 @@ mod tests {
         );
         check!(("", expected_formula) == propositional_formula("(a<->b)").unwrap());
     }
+
+    #[test]
+    fn nested_formula() {
+        let sub_formula_a = PropositionalFormula::variable(Variable::new("a"));
+        let sub_formula_b = PropositionalFormula::variable(Variable::new("b"));
+        let sub_formula_c = PropositionalFormula::variable(Variable::new("c"));
+        let left_sub_formula =
+            PropositionalFormula::biimplication(Box::new(sub_formula_a), Box::new(sub_formula_b));
+        let expected_formula =
+            PropositionalFormula::disjunction(Box::new(left_sub_formula), Box::new(sub_formula_c));
+
+        check!(("", expected_formula) == propositional_formula("((a<->b)|c)").unwrap());
+    }
 }
