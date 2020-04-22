@@ -112,15 +112,8 @@ pub fn is_satisfiable(propositional_formula: PropositionalFormula) -> bool {
                     let mut new_theory_1 = theory.clone();
                     let mut new_theory_2 = theory.clone();
 
-                    new_theory_1.swap_formula2(
-                        &non_literal_formula,
-                        (*literal_1.clone(), *literal_2.clone()),
-                    );
-
-                    new_theory_2.swap_formula2(
-                        &non_literal_formula,
-                        (*literal_1.clone(), *literal_2.clone()),
-                    );
+                    new_theory_1.swap_formula(&non_literal_formula, *literal_1);
+                    new_theory_2.swap_formula(&non_literal_formula, *literal_2);
 
                     if !tableau.contains(&new_theory_1) && !new_theory_1.has_contradictions() {
                         tableau.push_theory(new_theory_1);
