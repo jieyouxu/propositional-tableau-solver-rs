@@ -6,6 +6,32 @@ pub mod tableau;
 pub mod theory;
 pub use tableau::Tableau;
 pub use theory::Theory;
+
+/// Result of expansion using various rules.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ExpansionKind {
+    /// The alpha (α) rule is applicable to the forms:
+    ///
+    /// | Form                   | α1           | α2       |
+    /// | ---------------------- | ------------ | -------- |
+    /// | `(A^B)`                | `A`          | `B`      |
+    /// | `(A<->B)`              | `(A->B)`     | `(B->A)` |
+    /// | `(-(A<->B))`           | `((-A)<->B)` | -        |
+    /// | <code>(-(A\|B))</code> | `(-A)`       | `(-B)`   |
+    /// | `(-(A->B))`            | `A`          | `(-B)`   |
+    /// | `(-(-A))`              | `A`          | -        |
+    Alpha(Box<PropositionalFormula>, Option<Box<PropositionalFormula>>),
+
+    /// The beta (β) rule is applicable to the forms:
+    ///
+    /// | Form                  | β1     | β2     |
+    /// | --------------------- | ------ | ------ |
+    /// | <code>(A\|B)</code >  | `A`    | `B`    |
+    /// | <code>(-(A^B))</code> | `(-A)` | `(-B)` |
+    /// | `(A->B)`              | `(-A)` | `B`    |
+    Beta(Box<PropositionalFormula>, Box<PropositionalFormula>),
+}
+
 /// Checks if the given propositional formula is _satisfiable_.
 ///
 /// # Propositional Tableaux Algorithm
@@ -14,11 +40,8 @@ pub use theory::Theory;
 ///
 /// | Term        | Meaning                                  |
 /// | ----------- | ---------------------------------------- |
-/// | [`Theory`]  | A _set_ of propositional **formulas**.   |
-/// | [`Tableau`] | A _queue_ of _alternative_ **theories**. |
-///
-/// [`Theory`]: self::theory::Theory;
-/// [`Tableau`]: self::tableau::Tableau;
+/// | `Theory`    | A _set_ of propositional **formulas**.   |
+/// | `Tableau`   | A _queue_ of _alternative_ **theories**. |
 ///
 /// ## Core Algorithm
 ///
@@ -70,8 +93,8 @@ pub use theory::Theory;
 ///
 /// Notice that the algorithm performs an optimization for early return by fusing the contradiction
 /// checking logic (i.e. determining if a branch closes) with the branch construction logic.
-pub fn is_satisfiable(propositional_formula: PropositionalFormula) -> bool {
-    let mut tableau = Tableau::from_starting_propositional_formula(propositional_formula);
+pub fn is_satisfiable(propositional_formula: &PropositionalFormula) -> bool {
+    let mut tableau = Tableau::from_starting_propositional_formula(propositional_formula.clone());
 
     while !tableau.is_empty() {
         // PANIC: Cannot panic because a `Theory` always exists if the `Tableau` is non-empty.
@@ -209,27 +232,10 @@ fn expand_non_literal_formula(non_literal: &PropositionalFormula) -> Option<Expa
     }
 }
 
-/// Result of expansion using various rules.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ExpansionKind {
-    /// The alpha (α) rule is applicable to the forms:
-    ///
-    /// | Form                   | α1           | α2       |
-    /// | ---------------------- | ------------ | -------- |
-    /// | `(A^B)`                | `A`          | `B`      |
-    /// | `(A<->B)`              | `(A->B)`     | `(B->A)` |
-    /// | `(-(A<->B))`           | `((-A)<->B)` | -        |
-    /// | <code>(-(A\|B))</code> | `(-A)`       | `(-B)`   |
-    /// | `(-(A->B))`            | `A`          | `(-B)`   |
-    /// | `(-(-A))`              | `A`          | -        |
-    Alpha(Box<PropositionalFormula>, Option<Box<PropositionalFormula>>),
-
-    /// The beta (β) rule is applicable to the forms:
-    ///
-    /// | Form                  | β1     | β2     |
-    /// | --------------------- | ------ | ------ |
-    /// | <code>(A\|B)</code >  | `A`    | `B`    |
-    /// | <code>(-(A^B))</code> | `(-A)` | `(-B)` |
-    /// | `(A->B)`              | `(-A)` | `B`    |
-    Beta(Box<PropositionalFormula>, Box<PropositionalFormula>),
+/// Checks if a given propositional formula is _valid_.
+///
+/// This is done by checking that the contrapositive statement: "is `-<formula>` unsatisfiable?"
+pub fn is_valid(formula: &PropositionalFormula) -> bool {
+    let negated_formula = PropositionalFormula::negated(Box::new(formula.clone()));
+    !is_satisfiable(&negated_formula)
 }
