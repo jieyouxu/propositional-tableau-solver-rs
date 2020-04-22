@@ -175,6 +175,19 @@ impl PropositionalFormula {
     ) -> Self {
         Self::Biimplication(Some(left_sub_formula), Some(right_sub_formula))
     }
+
+    /// Checks if the given `PropositionalFormula` is a literal (either a propositional variable
+    /// like `p` or its negation `-p`).
+    pub fn is_literal(&self) -> bool {
+        match self {
+            // A propositional variable `p` is trivially a literal.
+            Self::Variable(_) => true,
+            // The negation of a propositional variable `(-p)` is also trivially a literal.
+            Self::Negation(Some(ref inner_formula)) if inner_formula.is_literal() => true,
+            // Any other complex propositional formula is not a literal.
+            _ => false,
+        }
+    }
 }
 
 impl<V> From<V> for PropositionalFormula
