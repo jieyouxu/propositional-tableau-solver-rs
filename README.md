@@ -1,7 +1,8 @@
 # Propositional Tableaux Solver
 
 A little propositional formula satisfiability solver using the propositional 
-tableaux method.
+tableaux method, written in the [Rust](https://github.com/rust-lang/rust)
+programming language!
 
 See http://www.dis.uniroma1.it/liberato/planning/tableau/tableau.html.
 
@@ -13,7 +14,7 @@ It can be described by the following BNF grammar:
 
 ```enbf
 <formula>   ::= <propositional-variable>
-            |   - <formula>                 # negation
+            |   ( - <formula> )             # negation
             |   ( <formula> ^ <formula>  )  # conjunction
             |   ( <formula> | <formula>  )  # disjunction
             |   ( <formula> -> <formula>  ) # implication
@@ -27,13 +28,25 @@ propositional variable from `AAA`.
 
 ## Running via Cargo
 
+### Mode
+
+The CLI supports both `satisfiability` mode and `validity` mode checking for a
+given propositional formula.
+
+Use the `-m` mode switch:
+
+1. Validity mode: `-m v`.
+2. Satisfiability mode (default): `-m s`.
+
+### Input
+
 Two ways to supply the propositional formula exist, with the `-c` switch method
 taking precedence:
 
 1. CLI argument switch `-c <input_string>`
 2. IO redirection
 
-### Command-line String
+#### Command-line String
 
 Using the `-c <input_string>`
 
@@ -41,7 +54,7 @@ Using the `-c <input_string>`
 $ cargo run -c "(a^b)"
 ```
 
-### IO Redirection
+#### IO Redirection
 
 Alternatively, redirect the standard input `stdin` to the solver to supply the
 propositional formula.
