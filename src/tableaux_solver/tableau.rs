@@ -28,6 +28,13 @@ pub struct Tableau {
 }
 
 impl Tableau {
+    /// Construct a new `Tableau` with no theories.
+    pub fn new() -> Self {
+        Self {
+            theories: VecDeque::new(),
+        }
+    }
+
     /// Construct a `Tableau` with the starting root node being the given propositional formula.
     pub fn from_starting_propositional_formula(formula: PropositionalFormula) -> Self {
         let mut theories = VecDeque::new();
@@ -53,5 +60,96 @@ impl Tableau {
     /// Check if the `Tableau` already contains the `Theory`.
     pub fn contains(&self, theory: &Theory) -> bool {
         self.theories.contains(theory)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::formula::Variable;
+    use assert2::check;
+
+    #[test]
+    fn test_empty_construction() {
+        let empty_tab = Tableau::new();
+        check!(empty_tab.is_empty());
+    }
+
+    #[test]
+    fn test_single_construction() {
+        let mut single_tab = Tableau::from_starting_propositional_formula(
+            PropositionalFormula::variable(Variable::new("a")),
+        );
+
+        check!(!single_tab.is_empty());
+        check!(single_tab.pop_theory().unwrap().formulas().count() == 1);
+    }
+
+    #[test]
+    fn test_push_theory() {
+        let mut tab = Tableau::new();
+        check!(tab.is_empty());
+
+        tab.push_theory(Theory::from_propositional_formula(
+            PropositionalFormula::variable(Variable::new("a")),
+        ));
+
+        check!(!tab.is_empty());
+
+        let theory = tab.pop_theory().unwrap();
+
+        check!(
+            &PropositionalFormula::variable(Variable::new("a"))
+                == theory.formulas().next().unwrap()
+        );
+    }
+
+    #[test]
+    fn test_pop_theory() {
+        let mut tab = Tableau::from_starting_propositional_formula(PropositionalFormula::variable(
+            Variable::new("a"),
+        ));
+        check!(!tab.is_empty());
+
+        let theory = tab.pop_theory().unwrap();
+
+        check!(
+            &PropositionalFormula::variable(Variable::new("a"))
+                == theory.formulas().next().unwrap()
+        );
+    }
+
+    #[test]
+    fn test_push_pop_theory() {
+        let mut tab = Tableau::new();
+
+        tab.push_theory(Theory::from_propositional_formula(
+            PropositionalFormula::variable(Variable::new("a")),
+        ));
+        let _ = tab.pop_theory();
+
+        check!(tab.is_empty());
+    }
+
+    #[test]
+    fn test_contains_theory() {
+        let tab = Tableau::from_starting_propositional_formula(PropositionalFormula::variable(
+            Variable::new("a"),
+        ));
+
+        check!(tab.contains(&Theory::from_propositional_formula(
+            PropositionalFormula::variable(Variable::new("a"))
+        )));
+    }
+
+    #[test]
+    fn test_does_not_contain_theory() {
+        let tab = Tableau::from_starting_propositional_formula(PropositionalFormula::variable(
+            Variable::new("a"),
+        ));
+
+        check!(!tab.contains(&Theory::from_propositional_formula(
+            PropositionalFormula::variable(Variable::new("b"))
+        )));
     }
 }
