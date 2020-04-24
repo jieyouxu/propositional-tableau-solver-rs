@@ -3,6 +3,8 @@ name = "propositional-tableau-solver-rs"
 version = "0.1.0"
 authors = ["许杰友 Jieyou Xu (Joe) <jieyouxu@outlook.com>"]
 edition = "2018"
+description = "Propositional tableau solver for propositional formulas"
+license = "MIT"
 
 [[bin]]
 name = "prop-sat-solver"
