@@ -13,13 +13,13 @@ name = "libprop_sat_solver"
 path = "src/lib.rs"
 
 [dev-dependencies]
-assert2 = "0.1.2"
+assert2 = "0.2.0"
 
 [dependencies]
 nom = "5.1.1"
 nom_locate = "2.0.0"
 colored = "1.9.3"
-structopt = { version = "0.3.13", features = ["color", "suggestions", "wrap_help", "paw"] }
+structopt = { version = "0.3.14", features = ["color", "suggestions", "wrap_help", "paw"] }
 paw = "1.0.0"
 log = "0.4.8"
 pretty_env_logger = "0.4.0"
