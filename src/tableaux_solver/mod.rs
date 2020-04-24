@@ -7,6 +7,8 @@ pub mod theory;
 pub use tableau::Tableau;
 pub use theory::Theory;
 
+use log::debug;
+
 /// Result of expansion using various rules.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ExpansionKind {
@@ -21,7 +23,6 @@ pub enum ExpansionKind {
     /// | `(-(A->B))`            | `A`          | `(-B)`   |
     /// | `(-(-A))`              | `A`          | -        |
     Alpha(Box<PropositionalFormula>, Option<Box<PropositionalFormula>>),
-
     /// The beta (β) rule is applicable to the forms:
     ///
     /// | Form                  | β1     | β2     |
@@ -95,10 +96,12 @@ pub enum ExpansionKind {
 /// checking logic (i.e. determining if a branch closes) with the branch construction logic.
 pub fn is_satisfiable(propositional_formula: &PropositionalFormula) -> bool {
     let mut tableau = Tableau::from_starting_propositional_formula(propositional_formula.clone());
+    debug!("starting with tableau:\n{:#?}", &tableau);
 
     while !tableau.is_empty() {
         // PANIC: Cannot panic because a `Theory` always exists if the `Tableau` is non-empty.
         let mut theory = tableau.pop_theory().unwrap();
+        debug!("current_theory:\n{:#?}", &theory);
 
         if theory.is_fully_expanded() && !theory.has_contradictions() {
             // If the theory is:
@@ -113,19 +116,37 @@ pub fn is_satisfiable(propositional_formula: &PropositionalFormula) -> bool {
         } else {
             // PANIC: should never panic because we already check that the theory is _not_ fully
             // expanded, hence it must contain _non-literals_.
-            let non_literal_formula = theory.pop_non_literal_formula().unwrap();
+            let non_literal_formula = theory.get_non_literal_formula().unwrap();
+            debug!("current non_literal: {:#?}", &non_literal_formula);
 
             // PANIC: should never panic because we exhaustively apply expansion rules and ensure
             // that we pass in a _non-literal_ formula.
             match expand_non_literal_formula(&non_literal_formula).unwrap() {
                 ExpansionKind::Alpha(literal_1, optional_literal_2) => {
+                    debug!(
+                        "apply alpha expansion: [LEFT = {:#?}], [RIGHT = {:#?}]",
+                        &literal_1, &optional_literal_2
+                    );
+
+                    debug!("theory before expansion: {:#?}", &theory);
+                    // FIXME: this `clone()` does not behave as the intended deep copy?
                     let mut new_theory = theory.clone();
+
+                    debug!(
+                        "new_theory before expansion:\n{:#?}",
+                        &new_theory.formulas().collect::<Vec<_>>()
+                    );
 
                     if let Some(literal_2) = optional_literal_2 {
                         new_theory.swap_formula2(&non_literal_formula, (*literal_1, *literal_2));
                     } else {
                         new_theory.swap_formula(&non_literal_formula, *literal_1);
                     }
+
+                    debug!(
+                        "new_theory after expansion:\n{:#?}",
+                        &new_theory.formulas().collect::<Vec<_>>()
+                    );
 
                     if !tableau.contains(&new_theory) && !new_theory.has_contradictions() {
                         tableau.push_theory(new_theory);

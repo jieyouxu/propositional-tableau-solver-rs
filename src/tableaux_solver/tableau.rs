@@ -32,7 +32,6 @@ impl Tableau {
     pub fn from_starting_propositional_formula(formula: PropositionalFormula) -> Self {
         let mut theories = VecDeque::new();
         theories.push_back(Theory::from_propositional_formula(formula));
-
         Self { theories }
     }
 
