@@ -18,18 +18,18 @@ pub enum ExpansionKind {
     /// | ---------------------- | ------------ | -------- |
     /// | `(A^B)`                | `A`          | `B`      |
     /// | `(A<->B)`              | `(A->B)`     | `(B->A)` |
-    /// | `(-(A<->B))`           | `((-A)<->B)` | -        |
     /// | <code>(-(A\|B))</code> | `(-A)`       | `(-B)`   |
     /// | `(-(A->B))`            | `A`          | `(-B)`   |
     /// | `(-(-A))`              | `A`          | -        |
     Alpha(Box<PropositionalFormula>, Option<Box<PropositionalFormula>>),
     /// The beta (β) rule is applicable to the forms:
     ///
-    /// | Form                  | β1     | β2     |
-    /// | --------------------- | ------ | ------ |
-    /// | <code>(A\|B)</code >  | `A`    | `B`    |
-    /// | <code>(-(A^B))</code> | `(-A)` | `(-B)` |
-    /// | `(A->B)`              | `(-A)` | `B`    |
+    /// | Form                  | β1         | β2         |
+    /// | --------------------- | ---------- | ---------- |
+    /// | <code>(A\|B)</code >  | `A`        | `B`        |
+    /// | <code>(-(A^B))</code> | `(-A)`     | `(-B)`     |
+    /// | `(A->B)`              | `(-A)`     | `B`        |
+    /// | `-(A<->B)`            | `(A^(-B))` | `(B^(-A))` |
     Beta(Box<PropositionalFormula>, Box<PropositionalFormula>),
 }
 
@@ -213,7 +213,7 @@ fn expand_non_literal_formula(non_literal: &PropositionalFormula) -> Option<Expa
         // 1. (-(A|B)) => Alpha((-A), Some((-B))).
         // 2. (-(A^B)) => Beta((-A), (-B)).
         // 3. (-(A->B)) => Alpha(A, Some((-B))).
-        // 4. (-(A<->B)) => Alpha(((-A)<->B), None).
+        // 4. (-(A<->B)) => Beta((A^(-B)), (B^(-A))).
         PropositionalFormula::Negation(Some(f)) => match &**f {
             PropositionalFormula::Negation(Some(a)) => {
                 return Some(ExpansionKind::Alpha(a.clone(), None));
@@ -236,12 +236,16 @@ fn expand_non_literal_formula(non_literal: &PropositionalFormula) -> Option<Expa
                 return Some(ExpansionKind::Alpha(a.clone(), Some(Box::new(alpha_2))));
             }
             PropositionalFormula::Biimplication(Some(a), Some(b)) => {
-                let alpha_1 = PropositionalFormula::biimplication(
-                    Box::new(PropositionalFormula::negated(a.clone())),
+                let beta_1 = PropositionalFormula::conjunction(
+                    a.clone(),
+                    Box::new(PropositionalFormula::negated(b.clone())),
+                );
+                let beta_2 = PropositionalFormula::conjunction(
                     b.clone(),
+                    Box::new(PropositionalFormula::negated(a.clone())),
                 );
 
-                return Some(ExpansionKind::Alpha(Box::new(alpha_1), None));
+                return Some(ExpansionKind::Beta(Box::new(beta_1), Box::new(beta_2)));
             }
             _ => {
                 return None;
@@ -259,4 +263,194 @@ fn expand_non_literal_formula(non_literal: &PropositionalFormula) -> Option<Expa
 pub fn is_valid(formula: &PropositionalFormula) -> bool {
     let negated_formula = PropositionalFormula::negated(Box::new(formula.clone()));
     !is_satisfiable(&negated_formula)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::formula::Variable;
+    use assert2::check;
+
+    #[test]
+    fn test_propositional_variable() {
+        // a
+        let formula = PropositionalFormula::variable(Variable::new("a"));
+
+        check!(is_satisfiable(&formula));
+        check!(!is_valid(&formula));
+    }
+
+    #[test]
+    fn test_conjunction_same_variable() {
+        // (a^a)
+        let formula = PropositionalFormula::conjunction(
+            Box::new(PropositionalFormula::variable(Variable::new("a"))),
+            Box::new(PropositionalFormula::variable(Variable::new("a"))),
+        );
+
+        check!(is_satisfiable(&formula));
+        check!(!is_valid(&formula));
+    }
+
+    #[test]
+    fn test_conjunction_different_variables() {
+        // (a^b)
+        let formula = PropositionalFormula::conjunction(
+            Box::new(PropositionalFormula::variable(Variable::new("a"))),
+            Box::new(PropositionalFormula::variable(Variable::new("b"))),
+        );
+
+        check!(is_satisfiable(&formula));
+        check!(!is_valid(&formula));
+    }
+
+    #[test]
+    fn test_disjunction_same_variable() {
+        // (a|a)
+        let formula = PropositionalFormula::disjunction(
+            Box::new(PropositionalFormula::variable(Variable::new("a"))),
+            Box::new(PropositionalFormula::variable(Variable::new("a"))),
+        );
+
+        check!(is_satisfiable(&formula));
+        check!(!is_valid(&formula));
+    }
+
+    #[test]
+    fn test_disjunction_different_variables() {
+        // (a|b)
+        let formula = PropositionalFormula::disjunction(
+            Box::new(PropositionalFormula::variable(Variable::new("a"))),
+            Box::new(PropositionalFormula::variable(Variable::new("b"))),
+        );
+
+        check!(is_satisfiable(&formula));
+        check!(!is_valid(&formula));
+    }
+
+    #[test]
+    fn test_implication_different_variables() {
+        // (a->b)
+        let formula = PropositionalFormula::implication(
+            Box::new(PropositionalFormula::variable(Variable::new("a"))),
+            Box::new(PropositionalFormula::variable(Variable::new("b"))),
+        );
+
+        check!(is_satisfiable(&formula));
+        check!(!is_valid(&formula));
+    }
+
+    #[test]
+    fn test_biimplication_different_variables() {
+        // (a<->b)
+        let formula = PropositionalFormula::biimplication(
+            Box::new(PropositionalFormula::variable(Variable::new("a"))),
+            Box::new(PropositionalFormula::variable(Variable::new("b"))),
+        );
+
+        check!(is_satisfiable(&formula));
+        check!(!is_valid(&formula));
+    }
+
+    #[test]
+    fn test_contradiction() {
+        // (a^-a)
+        let formula = PropositionalFormula::conjunction(
+            Box::new(PropositionalFormula::variable(Variable::new("a"))),
+            Box::new(PropositionalFormula::negated(Box::new(
+                PropositionalFormula::variable(Variable::new("a")),
+            ))),
+        );
+
+        check!(!is_satisfiable(&formula));
+        check!(!is_valid(&formula));
+    }
+
+    #[test]
+    fn test_tautology_disjunction() {
+        // (a|(-a))
+        let formula = PropositionalFormula::disjunction(
+            Box::new(PropositionalFormula::variable(Variable::new("a"))),
+            Box::new(PropositionalFormula::negated(Box::new(
+                PropositionalFormula::variable(Variable::new("a")),
+            ))),
+        );
+
+        check!(is_satisfiable(&formula));
+        check!(is_valid(&formula));
+    }
+
+    #[test]
+    fn test_tautology_disjunction_nested_negation() {
+        // ((-a)|(-(-a)))
+        let formula = PropositionalFormula::disjunction(
+            Box::new(PropositionalFormula::negated(Box::new(
+                PropositionalFormula::variable(Variable::new("a")),
+            ))),
+            Box::new(PropositionalFormula::negated(Box::new(
+                PropositionalFormula::negated(Box::new(PropositionalFormula::variable(
+                    Variable::new("a"),
+                ))),
+            ))),
+        );
+
+        check!(is_satisfiable(&formula));
+        check!(is_valid(&formula));
+    }
+
+    #[test]
+    fn test_tautology_implication_literal() {
+        // (a->a)
+        let formula = PropositionalFormula::implication(
+            Box::new(PropositionalFormula::variable(Variable::new("a"))),
+            Box::new(PropositionalFormula::variable(Variable::new("a"))),
+        );
+
+        check!(is_satisfiable(&formula));
+        check!(is_valid(&formula));
+    }
+
+    #[test]
+    fn test_tautology_implication_negated_literal() {
+        // ((-a)->(-a))
+        let formula = PropositionalFormula::implication(
+            Box::new(PropositionalFormula::negated(Box::new(
+                PropositionalFormula::variable(Variable::new("a")),
+            ))),
+            Box::new(PropositionalFormula::negated(Box::new(
+                PropositionalFormula::variable(Variable::new("a")),
+            ))),
+        );
+
+        check!(is_satisfiable(&formula));
+        check!(is_valid(&formula));
+    }
+
+    #[test]
+    fn test_tautology_biimplication_literal() {
+        // (a<->a)
+        let formula = PropositionalFormula::biimplication(
+            Box::new(PropositionalFormula::variable(Variable::new("a"))),
+            Box::new(PropositionalFormula::variable(Variable::new("a"))),
+        );
+
+        check!(is_satisfiable(&formula));
+        check!(is_valid(&formula));
+    }
+
+    #[test]
+    fn test_tautology_biimplication_negated_literal() {
+        // ((-a)<->(-a))
+        let formula = PropositionalFormula::biimplication(
+            Box::new(PropositionalFormula::negated(Box::new(
+                PropositionalFormula::variable(Variable::new("a")),
+            ))),
+            Box::new(PropositionalFormula::negated(Box::new(
+                PropositionalFormula::variable(Variable::new("a")),
+            ))),
+        );
+
+        check!(is_satisfiable(&formula));
+        check!(is_valid(&formula));
+    }
 }
