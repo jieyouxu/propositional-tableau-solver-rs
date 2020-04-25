@@ -6,6 +6,9 @@ edition = "2018"
 description = "Propositional tableau solver for propositional formulas"
 license = "MIT"
 
+[profile.release]
+lto = true
+
 [[bin]]
 name = "prop-sat-solver"
 path = "src/main.rs"
